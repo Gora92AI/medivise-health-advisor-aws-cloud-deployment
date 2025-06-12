@@ -39,4 +39,4 @@ Deploys the MediVise AI Health Advisor app from S3 > virtualenv > requirements.t
 
 ---
 
-**Open for collaboration, feedback, and DevOps/cloud roles. Connect on [LinkedIn](https://linkedin.com/)!**
+**Open for collaboration, feedback, and DevOps/cloud roles. Connect on [LinkedIn](www.linkedin.com/in/gora-diop-b7a833135)!**
