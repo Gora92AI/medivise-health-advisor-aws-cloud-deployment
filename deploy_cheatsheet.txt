@@ -126,5 +126,5 @@ sudo tail -n 50 /var/log/nginx/error.log
 - streamlit not found? Run source venv/bin/activate first!
 
 ==============================
-YOUR SITE IS LIVE ON HTTPS!
+THE SITE IS LIVE ON HTTPS!
 ==============================
