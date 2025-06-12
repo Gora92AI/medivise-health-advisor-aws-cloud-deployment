@@ -22,7 +22,7 @@ Deploys the MediVise AI Health Advisor app from S3 > virtualenv > requirements.t
 ![Week 3-4 Progress] (progress_screenshots/week3-4_cloud_projects_monitoring.png)
 
 ## 📚 Extended Documentation & Weekly Planner
-- [See my full cloud learning plan, portfolio tracker, and progress journal on Notion (includes milestones, screenshots, and future goals)](https://www.notion.so/CLOUD-ENGINEER-1fc583791f74807fb17dbde6db1f9d65#1fc583791f748079afc7cbe427dfb8c3)
+- [See my full cloud learning plan, portfolio tracker, and progress journal on Notion (includes milestones, screenshots, and future goals)]  (https://www.notion.so/CLOUD-ENGINEER-1fc583791f74807fb17dbde6db1f9d65#1fc583791f748079afc7cbe427dfb8c3)
 ---
 
 ## 📄 Deployment Guide  
