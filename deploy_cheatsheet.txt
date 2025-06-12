@@ -1,0 +1,130 @@
+==============================
+Streamlit App to EC2 Deployment Cheatsheet
+==============================
+
+1. Launch EC2 Instance
+----------------------
+- AMI: Ubuntu 22.04 LTS
+- Inbound Ports (Security Group): 
+    SSH: 22 (from your IP)
+    HTTP: 80 (from 0.0.0.0/0)
+    HTTPS: 443 (from 0.0.0.0/0)
+    Streamlit test: 8501 (from your IP, remove later)
+
+2. SSH to Your Instance
+-----------------------
+ssh -i /path/to/your-key.pem ubuntu@<EC2_PUBLIC_IP>
+
+3. Prep the System
+------------------
+sudo apt update && sudo apt upgrade -y
+sudo apt install python3-pip python3-venv nginx unzip awscli -y
+
+4. Copy Code from S3
+--------------------
+aws configure           # (AWS keys/region)
+aws s3 cp s3://<your-bucket>/ ./app --recursive
+cd app
+ls                      # Check your files
+
+5. Python Virtualenv & Install Requirements
+-------------------------------------------
+python3 -m venv venv
+source venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt     # or pip install streamlit openai etc.
+
+6. Streamlit Secrets
+--------------------
+mkdir -p .streamlit
+nano .streamlit/secrets.toml
+# Add secrets, e.g. OPENAI_API_KEY = "sk-...yourkey..."
+
+7. Test Streamlit on Port 8501
+------------------------------
+streamlit run your_app.py --server.address 0.0.0.0 --server.port 8501
+# Visit: http://<EC2_PUBLIC_IP>:8501 
+
+8. Keep Streamlit Running (prod)
+-------------------------------
+nohup streamlit run your_app.py --server.address 0.0.0.0 --server.port 8501 > streamlit.log 2>&1 &
+
+9. (Optional) Add/Point Domain to EC2
+-------------------------------------
+- Set an A record in your DNS: yoursub.yourdomain.com -> <EC2_PUBLIC_IP>
+
+10. Install Nginx & Certbot
+---------------------------
+sudo apt install certbot python3-certbot-nginx -y
+
+11. Nginx Reverse Proxy Config
+------------------------------
+sudo nano /etc/nginx/sites-available/streamlit
+
+# Paste this block:
+
+server {
+    listen 443 ssl;
+    server_name yourdomain.com;
+
+    location / {
+        proxy_pass http://localhost:8501;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_read_timeout 86400;
+    }
+    ssl_certificate /etc/letsencrypt/live/yourdomain.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/yourdomain.com/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+}
+
+server {
+    if ($host = yourdomain.com) {
+        return 301 https://$host$request_uri;
+    }
+}
+
+server {
+    listen 80;
+    server_name yourdomain.com;
+    return 404;
+}
+
+sudo ln -s /etc/nginx/sites-available/streamlit /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl reload nginx
+
+12. Get Free Let’s Encrypt HTTPS
+-------------------------------
+sudo certbot --nginx -d yourdomain.com
+
+13. Harden Security
+-------------------
+- Remove 8501 from security group.
+- Leave only 22 (SSH), 80, 443.
+
+14. (Optional) Streamlit as a Service/Uptime
+--------------------------------------------
+# For auto-restart and always-up, use systemd or process managers.
+
+# For log troubleshooting:
+tail -f streamlit.log
+sudo tail -n 50 /var/log/nginx/error.log
+
+15. Troubleshooting
+-------------------
+- Blank/skeleton page on domain? Add proxy_http_version / Upgrade headers in Nginx.
+- Port 8501 in use? 
+    sudo lsof -i :8501
+    kill -9 <PID>
+- streamlit not found? Run source venv/bin/activate first!
+
+==============================
+YOUR SITE IS LIVE ON HTTPS!
+==============================
